@@ -1,0 +1,20 @@
+class environment
+- list (rows) of list (column) of agents
+- only one agent per cell
+
+2 plans:
+- ?
+- ?
+
+2 goals:
+- keep moving.
+- move to a specific square: only turns allowed, no obliquo.
+- moveTo.
+
+constrain: cannot pass through a cell already occupied
+when it's arrived, drop the goal
+
+1 plan scheme:
+- selects the proper plan
+
+in the environment will get a list of actions, which is agent-list of actions
