@@ -1,5 +1,6 @@
 import Belief.Belief;
 import agent.GoalPlanScheme;
+import agent.KeepMovingGoal;
 import agent.MoveToGoal;
 import environment.Environment;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.Agent;
@@ -29,13 +30,12 @@ public class main {
         Platform platform = Platform.newPlatform(tickExecutor, messenger);
 
         // add agents
-        createAgent(platform, new Point(3,3));
-        createAgent(platform, new Point(5,5));
+        createAgent(platform, new Point(2,2));
+        createAgent(platform, new Point(0,0));
 
         // create and start simulation
         DefaultSimulationEngine<String> simulationEngine = new DefaultSimulationEngine<>(platform, 100, environment);
         simulationEngine.start();
-
     }
 
     /**
@@ -54,17 +54,18 @@ public class main {
             agent = new Agent<>(platform, args);    // create agent
             belief.setAgentID(agent.getAID());  // set agentID of the belief
             agent.adoptGoal(new MoveToGoal(destinationGoal));   // add goal to destination point
+            agent.adoptGoal(new KeepMovingGoal());
 
             // initialise agent to random location. Try till a new free cell is found.
             boolean agentInEnvironment = false;
             while (!agentInEnvironment) {
                 agentInEnvironment = environment.addAgent(agent.getAID(), new Point(ThreadLocalRandom.current().nextInt(0, environment.envGrid.size()),ThreadLocalRandom.current().nextInt(0, environment.envGrid.get(0).size())));
             }
-
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
     }
+
 
 }

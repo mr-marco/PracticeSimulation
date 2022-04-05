@@ -26,28 +26,47 @@ public class Environment implements Context, TickHookProcessor<String> {
         }
     }
 
-    public void processAction(List<DeliberationResult<String>> agentActions){
-        for(DeliberationResult<String> agentAction: agentActions) {
+    public void processAction(DeliberationResult<String> agentAction){
             List<String> actions = agentAction.getActions();
-            System.out.println(actions);
-            /*
+            Point currentPos = getPosition(agentAction.getAgentID());
+
             for (String action: actions) {
                 switch (action){
-                    case "left":
-                        envGrid
-                    case "left":
-
-                    case "up":
-
-                    case "down":
-
+                    case "left": {
+                        List<AgentID> row = envGrid.get(currentPos.x);
+                        row.set(currentPos.y, null);
+                        row.set(currentPos.y - 1, agentAction.getAgentID());
+                        break;
+                    }
+                    case "right": {
+                        List<AgentID> row = envGrid.get(currentPos.x);
+                        row.set(currentPos.y, null);
+                        row.set(currentPos.y + 1, agentAction.getAgentID());
+                        break;
+                    }
+                    case "up": {
+                        List<AgentID> row = envGrid.get(currentPos.x);
+                        row.set(currentPos.y, null);
+                        List<AgentID> newRow = envGrid.get(currentPos.x-1);
+                        newRow.set(currentPos.y, agentAction.getAgentID());
+                        break;
+                    }
+                    case "down": {
+                        List<AgentID> row = envGrid.get(currentPos.x);
+                        row.set(currentPos.y, null);
+                        List<AgentID> newRow = envGrid.get(currentPos.x + 1);
+                        newRow.set(currentPos.y, agentAction.getAgentID());
+                        break;
+                    }
                     default:
                         break;
                 }
+
+                System.out.println("Move agent :"+agentAction.getAgentID() +"  "+action);
+                //envGrid.forEach(System.out::println);
+                printEnv();
             }
 
-             */
-        }
     }
 
     /**
@@ -55,44 +74,30 @@ public class Environment implements Context, TickHookProcessor<String> {
      * @return: coordinates x,y of the agent in the environment
      */
     public Point getPosition(AgentID agentID) {
-        int row = 0;
-        boolean found = false;
-        Point point = new Point();
-        while (row<envGrid.size() && !found){
-            int col=0;
-            while(col < envGrid.get(row).size() && !found) {
-                if (envGrid.get(row).get(col)==agentID) {
-                    found = true;
-                    point.setLocation(row, col);
+        for (int i = 0; i < envGrid.size(); i++) {
+            for (int j = 0; j < envGrid.get(i).size(); j++) {
+                if (agentID.equals(envGrid.get(i).get(j))) {
+                    return new Point(i, j);
                 }
             }
-            row++;
         }
-
-        if (found){
-            return point;
-        } else {
-            return null;
-        }
+        return null;
     }
 
     @Override
     public void tickPreHook(long l) {
-
     }
 
     @Override
     public void tickPostHook(long l, int i, List<Future<DeliberationResult<String>>> list) {
-        System.out.println("post");
-        List<DeliberationResult<String>> results = new ArrayList<>();
         for (int a = 0; a < list.size(); a++) {
             try {
-                results.add(list.get(a).get());
+                processAction(list.get(a).get());
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
-        processAction(results);
+
     }
 
     @Override
@@ -112,12 +117,25 @@ public class Environment implements Context, TickHookProcessor<String> {
             List<AgentID> row = envGrid.get(point.x);
             row.set(point.y, agentID);
 
-            //System.out.println("Agent placed:");
-            //envGrid.forEach(System.out::println);
+            System.out.println("Agent placed:");
+            printEnv();
             return true;
         } else {
             // cell occupied
             return false;
+        }
+    }
+
+
+    private void printEnv(){
+        for (int i = 0; i < envGrid.size(); i++) {
+            for (int j = 0; j < envGrid.get(i).size(); j++) {
+                if (envGrid.get(i).get(j) != null)
+                    System.out.print(envGrid.get(i).get(j).toString().substring(3, 5)+" ");
+                else
+                    System.out.print("-- ");
+            }
+            System.out.println();
         }
     }
 }

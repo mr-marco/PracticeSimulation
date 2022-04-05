@@ -2,6 +2,7 @@ package agent;
 
 import Belief.Belief;
 import environment.Environment;
+import nl.uu.cs.iss.ga.sim2apl.core.agent.AgentID;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.PlanToAgentInterface;
 import nl.uu.cs.iss.ga.sim2apl.core.plan.PlanExecutionError;
 import nl.uu.cs.iss.ga.sim2apl.core.plan.builtin.RunOncePlan;
@@ -24,13 +25,13 @@ public class MoveToPlan extends RunOncePlan<String> {
 
         // calculate action
         if (currentPos.x != goal.destinationPoint.x) {
-            if (currentPos.y < goal.destinationPoint.y) {
+            if (currentPos.x < goal.destinationPoint.x) {
                 return "down";
             } else {
                 return "up";
             }
         } else {
-            if (currentPos.x < goal.destinationPoint.x) {
+            if (currentPos.y < goal.destinationPoint.y) {
                 return "right";
             } else {
                 return "left";

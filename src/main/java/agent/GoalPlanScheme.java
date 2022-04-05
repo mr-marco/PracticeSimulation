@@ -16,7 +16,6 @@ public class GoalPlanScheme implements PlanScheme<String> {
         } else if (goal instanceof KeepMovingGoal) {
             return null;
         }
-        System.out.println("uere");
         return Plan.UNINSTANTIATED();
     }
 }
