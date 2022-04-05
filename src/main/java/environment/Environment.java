@@ -3,9 +3,11 @@ package environment;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.AgentID;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.Context;
 import nl.uu.cs.iss.ga.sim2apl.core.deliberation.DeliberationResult;
+import nl.uu.cs.iss.ga.sim2apl.core.platform.Platform;
 import nl.uu.cs.iss.ga.sim2apl.core.tick.TickHookProcessor;
 
 import java.awt.*;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +16,11 @@ import java.util.concurrent.Future;
 
 public class Environment implements Context, TickHookProcessor<String> {
     public List<List<AgentID>> envGrid;
+    private Platform platform;
+
+    public Environment(Platform platform) {
+        this.platform = platform;
+    }
 
     /**
      * Initialise the grid cells
@@ -36,12 +43,14 @@ public class Environment implements Context, TickHookProcessor<String> {
                         List<AgentID> row = envGrid.get(currentPos.x);
                         row.set(currentPos.y, null);
                         row.set(currentPos.y - 1, agentAction.getAgentID());
+                        currentPos.y--;
                         break;
                     }
                     case "right": {
                         List<AgentID> row = envGrid.get(currentPos.x);
                         row.set(currentPos.y, null);
                         row.set(currentPos.y + 1, agentAction.getAgentID());
+                        currentPos.y++;
                         break;
                     }
                     case "up": {
@@ -49,6 +58,7 @@ public class Environment implements Context, TickHookProcessor<String> {
                         row.set(currentPos.y, null);
                         List<AgentID> newRow = envGrid.get(currentPos.x-1);
                         newRow.set(currentPos.y, agentAction.getAgentID());
+                        currentPos.x--;
                         break;
                     }
                     case "down": {
@@ -56,10 +66,26 @@ public class Environment implements Context, TickHookProcessor<String> {
                         row.set(currentPos.y, null);
                         List<AgentID> newRow = envGrid.get(currentPos.x + 1);
                         newRow.set(currentPos.y, agentAction.getAgentID());
+                        currentPos.x++;
                         break;
                     }
                     default:
                         break;
+                }
+
+                if (false) { // TODO, if agent could not move
+                    Point unavailablePoint = currentPos; // TODO, what point did the agent want to move into
+                    AgentID occupyingAgent = envGrid.get(unavailablePoint.x).get(unavailablePoint.y);
+                    if (occupyingAgent != null) {
+                        try {
+                            DestinationUnavailableTrigger warningTrigger = new DestinationUnavailableTrigger(
+                                    unavailablePoint, occupyingAgent
+                            );
+                            platform.getLocalAgent(agentAction.getAgentID()).addExternalTrigger(warningTrigger);
+                        } catch (URISyntaxException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
 
                 System.out.println("Move agent :"+agentAction.getAgentID() +"  "+action);

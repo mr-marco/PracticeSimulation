@@ -2,7 +2,9 @@ import Belief.Belief;
 import agent.GoalPlanScheme;
 import agent.KeepMovingGoal;
 import agent.MoveToGoal;
+import agent.planfailure.ExternalTriggerPlanScheme;
 import environment.Environment;
+import messages.MessagePlanScheme;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.Agent;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.AgentArguments;
 import nl.uu.cs.iss.ga.sim2apl.core.defaults.messenger.DefaultMessenger;
@@ -17,7 +19,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.awt.*;
 import java.net.URISyntaxException;
 
-public class main {
+public class Main {
 
     private static Environment environment;
 
@@ -25,9 +27,10 @@ public class main {
         TickExecutor<String> tickExecutor = new DefaultBlockingTickExecutor<>(1);
         DefaultMessenger<String> messenger = new DefaultMessenger<>();
 
-        environment = new Environment();
-        environment.initGrid(); // initialise grid environment
+
         Platform platform = Platform.newPlatform(tickExecutor, messenger);
+        environment = new Environment(platform);
+        environment.initGrid(); // initialise grid environment
 
         // add agents
         createAgent(platform, new Point(2,2));
@@ -49,6 +52,8 @@ public class main {
         args.addContext(environment);
         args.addContext(belief);
         args.addGoalPlanScheme(new GoalPlanScheme());
+        args.addMessagePlanScheme(new MessagePlanScheme());
+        args.addExternalTriggerPlanScheme(new ExternalTriggerPlanScheme());
         Agent<String> agent;
         try {
             agent = new Agent<>(platform, args);    // create agent
@@ -64,7 +69,6 @@ public class main {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-
     }
 
 

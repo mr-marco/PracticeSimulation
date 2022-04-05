@@ -10,7 +10,7 @@ import java.awt.*;
 
 public class MoveToGoal extends Goal {
 
-    Point destinationPoint;
+    public Point destinationPoint;
 
     public MoveToGoal(Point destinationPoint) {
         this.destinationPoint = destinationPoint;
