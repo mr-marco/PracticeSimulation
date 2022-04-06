@@ -1,10 +1,15 @@
 package messages;
 
+import environment.Environment;
+import nl.uu.cs.iss.ga.sim2apl.core.agent.Agent;
+import nl.uu.cs.iss.ga.sim2apl.core.agent.AgentID;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.PlanToAgentInterface;
 import nl.uu.cs.iss.ga.sim2apl.core.plan.PlanExecutionError;
 import nl.uu.cs.iss.ga.sim2apl.core.plan.builtin.RunOncePlan;
 import nl.uu.cs.iss.ga.sim2apl.core.platform.Platform;
 
+import java.awt.*;
+import java.util.List;
 import java.util.logging.Level;
 
 public class ReceiveConflictResolutionProposal extends RunOncePlan<String> {
@@ -17,22 +22,23 @@ public class ReceiveConflictResolutionProposal extends RunOncePlan<String> {
 
     @Override
     public String executeOnce(PlanToAgentInterface<String> planToAgentInterface) throws PlanExecutionError {
-        Platform.getLogger().log(getClass(), Level.INFO, String.format(
-                "Agent %s received a message from %s with the proposal it moves into square (%d, %d) while they" +
-                        "move to (%d, %d) to reach their target of (%d, %d)",
-                planToAgentInterface.getAgentID(),
-                message.getSender(),
-                message.getYourProposedNextCoordinates() != null ? message.getYourProposedNextCoordinates().x : -1,
-                message.getYourProposedNextCoordinates() != null ? message.getYourProposedNextCoordinates().y : -1,
-                message.getMyProposedNextCoordinates() != null ? message.getMyProposedNextCoordinates().x : -1,
-                message.getMyProposedNextCoordinates() != null ? message.getMyProposedNextCoordinates().y : -1,
-                message.getMyTargetCoordinates() != null ? message.getMyTargetCoordinates().x : -1,
-                message.getMyTargetCoordinates() != null ? message.getMyTargetCoordinates().y : -1
-                )
+
+        System.out.println(
+                "Sender: "+message.getSender().toString().substring(2, 4)+"\n"+
+                        "SenderLocation: "+message.getCurrentCoordinates()+"\n"+
+                        "Cell occupied: "+message.getUnavailableCoordinates()+"\n"+
+                        "SenderProposed: "+message.getProposedNextCoordinates()+"\n"
         );
 
-        // TODO, what do you want to do with the proposed solution
+        Point proposedPoint = new Point(message.getProposedNextCoordinates().x, message.getProposedNextCoordinates().y);
+        AgentID meAgent = planToAgentInterface.getAgent().getAID();
+        Environment env = planToAgentInterface.getContext(Environment.class);
+        Point myLocation = env.getPosition(meAgent);
 
-        return null;
+        if (proposedPoint.x > myLocation.x) return "down";
+        else if (proposedPoint.x < myLocation.x) return "up";
+        else if (proposedPoint.y > myLocation.y) return "right";
+        else if (proposedPoint.y < myLocation.y) return "left";
+        else return null;
     }
 }

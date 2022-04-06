@@ -5,6 +5,8 @@ import agent.MoveToGoal;
 import environment.DestinationUnavailableTrigger;
 import environment.Environment;
 import messages.ResolveGridConflictMessage;
+import nl.uu.cs.iss.ga.sim2apl.core.agent.Agent;
+import nl.uu.cs.iss.ga.sim2apl.core.agent.AgentID;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.Goal;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.PlanToAgentInterface;
 import nl.uu.cs.iss.ga.sim2apl.core.defaults.messenger.MessageReceiverNotFoundException;
@@ -14,6 +16,7 @@ import nl.uu.cs.iss.ga.sim2apl.core.platform.Platform;
 import nl.uu.cs.iss.ga.sim2apl.core.platform.PlatformNotFoundException;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * This plan is executed if the environment lets the agent know a previously requested action failed,
@@ -32,21 +35,31 @@ public class CoordinateUnavailablePlan extends RunOncePlan<String> {
         try {
             Platform platform = planToAgentInterface.getAgent().getPlatform();
             Point myLocation = planToAgentInterface.getContext(Environment.class).getPosition(planToAgentInterface.getAgentID());
+            Agent agent = planToAgentInterface.getAgent();
+            Environment env = planToAgentInterface.getContext(Environment.class);
 
-            Point myTarget = getCurrentDestination(planToAgentInterface);
-            // TODO, maybe you can come up with a strategy, so both agents will propose the same conflict resolution?
+            // find the proposed point
+            ArrayList<Point> possiblePoints = new ArrayList<Point>();
+            Point unavailablePoint = trigger.getUnavailablePoint();
 
-
-            platform.getMessenger().deliverMessage(
-                    trigger.getOccupyingAgent(),
-                    new ResolveGridConflictMessage(
-                            planToAgentInterface.getAgentID(),
-                            myLocation, // TODO
-                            myLocation, // TODO
-                            myTarget,
-                            trigger.getOccupyingAgent()
-                    )
-            );
+            Point proposedPoint = new Point(unavailablePoint.x-1, unavailablePoint.y);
+            if (env.pointInGrid(proposedPoint) && env.envGrid.get(unavailablePoint.x-1).get(unavailablePoint.y)==null)
+                sendMessage(platform, planToAgentInterface, myLocation, unavailablePoint, proposedPoint);
+            else{
+                proposedPoint = new Point(unavailablePoint.x + 1, unavailablePoint.y);
+                if (env.pointInGrid(proposedPoint) && env.envGrid.get(unavailablePoint.x + 1).get(unavailablePoint.y) == null)
+                    sendMessage(platform, planToAgentInterface, myLocation, unavailablePoint, proposedPoint);
+                else {
+                    proposedPoint = new Point(unavailablePoint.x, unavailablePoint.y-1);
+                    if (env.pointInGrid(proposedPoint) && env.envGrid.get(unavailablePoint.x).get(unavailablePoint.y-1) == null)
+                        sendMessage(platform, planToAgentInterface, myLocation, unavailablePoint, proposedPoint);
+                    else {
+                        proposedPoint = new Point(unavailablePoint.x, unavailablePoint.y+1);
+                        if (env.pointInGrid(proposedPoint) && env.envGrid.get(unavailablePoint.x).get(unavailablePoint.y+1) == null);
+                            sendMessage(platform, planToAgentInterface, myLocation, unavailablePoint, proposedPoint);
+                    }
+                }
+            }
 
         } catch (PlatformNotFoundException | MessageReceiverNotFoundException e) {
             e.printStackTrace();
@@ -54,6 +67,22 @@ public class CoordinateUnavailablePlan extends RunOncePlan<String> {
         }
         return null;
     }
+
+
+
+    private void sendMessage(Platform platform, PlanToAgentInterface<String> planToAgentInterface, Point myLocation, Point unavailablePoint, Point proposedPoint) throws MessageReceiverNotFoundException {
+        platform.getMessenger().deliverMessage(
+                trigger.getOccupyingAgent(),
+                new ResolveGridConflictMessage(
+                        planToAgentInterface.getAgentID(),
+                        myLocation,
+                        unavailablePoint,
+                        proposedPoint,
+                        trigger.getOccupyingAgent()
+                )
+        );
+    }
+
 
     private Point getCurrentDestination(PlanToAgentInterface<String> planToAgentInterface) {
         for(Goal goal : planToAgentInterface.getAgent().getGoals()) {

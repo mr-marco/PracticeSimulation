@@ -33,7 +33,7 @@ public class Main {
         environment.initGrid(); // initialise grid environment
 
         // add agents
-        createAgent(platform, new Point(2,2));
+        createAgent(platform, new Point(1,1));
         createAgent(platform, new Point(0,0));
 
         // create and start simulation
@@ -66,6 +66,8 @@ public class Main {
             while (!agentInEnvironment) {
                 agentInEnvironment = environment.addAgent(agent.getAID(), new Point(ThreadLocalRandom.current().nextInt(0, environment.envGrid.size()),ThreadLocalRandom.current().nextInt(0, environment.envGrid.get(0).size())));
             }
+
+            System.out.println("Created agent "+agent.getAID().toString().substring(2,4)+ " with goal ["+destinationGoal.x+","+destinationGoal.y+"]");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

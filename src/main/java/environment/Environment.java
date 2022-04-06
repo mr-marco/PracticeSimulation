@@ -1,5 +1,6 @@
 package environment;
 
+import nl.uu.cs.iss.ga.sim2apl.core.agent.Agent;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.AgentID;
 import nl.uu.cs.iss.ga.sim2apl.core.agent.Context;
 import nl.uu.cs.iss.ga.sim2apl.core.deliberation.DeliberationResult;
@@ -28,68 +29,88 @@ public class Environment implements Context, TickHookProcessor<String> {
     public void initGrid(){
         this.envGrid = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++)  {
-            this.envGrid.add(new ArrayList<AgentID>(Collections.nCopies(10, null)));
+        for (int i = 0; i < 2; i++)  {
+            this.envGrid.add(new ArrayList<AgentID>(Collections.nCopies(2, null)));
         }
     }
 
-    public void processAction(DeliberationResult<String> agentAction){
+    public void processAction(DeliberationResult<String> agentAction) {
             List<String> actions = agentAction.getActions();
-            Point currentPos = getPosition(agentAction.getAgentID());
+
+            String agentID = agentAction.getAgentID().toString().substring(2,4);
 
             for (String action: actions) {
-                switch (action){
-                    case "left": {
-                        List<AgentID> row = envGrid.get(currentPos.x);
-                        row.set(currentPos.y, null);
-                        row.set(currentPos.y - 1, agentAction.getAgentID());
-                        currentPos.y--;
-                        break;
-                    }
-                    case "right": {
-                        List<AgentID> row = envGrid.get(currentPos.x);
-                        row.set(currentPos.y, null);
-                        row.set(currentPos.y + 1, agentAction.getAgentID());
-                        currentPos.y++;
-                        break;
-                    }
-                    case "up": {
-                        List<AgentID> row = envGrid.get(currentPos.x);
-                        row.set(currentPos.y, null);
-                        List<AgentID> newRow = envGrid.get(currentPos.x-1);
-                        newRow.set(currentPos.y, agentAction.getAgentID());
-                        currentPos.x--;
-                        break;
-                    }
-                    case "down": {
-                        List<AgentID> row = envGrid.get(currentPos.x);
-                        row.set(currentPos.y, null);
-                        List<AgentID> newRow = envGrid.get(currentPos.x + 1);
-                        newRow.set(currentPos.y, agentAction.getAgentID());
-                        currentPos.x++;
-                        break;
-                    }
-                    default:
-                        break;
+                Point unavailablePoint = null;
+                Point currentPos = getPosition(agentAction.getAgentID());
+
+                List goals = null;
+                try {
+                    goals = platform.getLocalAgent(agentAction.getAgentID()).getGoals();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
                 }
 
-                if (false) { // TODO, if agent could not move
-                    Point unavailablePoint = currentPos; // TODO, what point did the agent want to move into
+                switch (action) {
+                    case "left" -> {
+                        if ((envGrid.get(currentPos.x).get(currentPos.y - 1)) == null) {
+                            List<AgentID> row = envGrid.get(currentPos.x);
+                            row.set(currentPos.y, null);
+                            row.set(currentPos.y - 1, agentAction.getAgentID());
+                        } else {
+                            unavailablePoint = new Point(currentPos.x, currentPos.y - 1);
+                        }
+                    }
+                    case "right" -> {
+                        if ((envGrid.get(currentPos.x).get(currentPos.y + 1)) == null) {
+                            List<AgentID> row = envGrid.get(currentPos.x);
+                            row.set(currentPos.y, null);
+                            row.set(currentPos.y + 1, agentAction.getAgentID());
+                        } else {
+                            unavailablePoint = new Point(currentPos.x, currentPos.y + 1);
+                        }
+                    }
+                    case "up" -> {
+                        if ((envGrid.get(currentPos.x - 1).get(currentPos.y)) == null) {
+                            List<AgentID> row = envGrid.get(currentPos.x);
+                            row.set(currentPos.y, null);
+                            List<AgentID> newRow = envGrid.get(currentPos.x - 1);
+                            newRow.set(currentPos.y, agentAction.getAgentID());
+                        } else {
+                            unavailablePoint = new Point(currentPos.x - 1, currentPos.y);
+                        }
+                    }
+                    case "down" -> {
+                        if ((envGrid.get(currentPos.x + 1).get(currentPos.y)) == null) {
+                            List<AgentID> row = envGrid.get(currentPos.x);
+                            row.set(currentPos.y, null);
+                            List<AgentID> newRow = envGrid.get(currentPos.x + 1);
+                            newRow.set(currentPos.y, agentAction.getAgentID());
+                        } else {
+                            unavailablePoint = new Point(currentPos.x + 1, currentPos.y);
+                        }
+                    }
+                    default -> {
+                    }
+                }
+
+                // if cell is occupied
+                if (unavailablePoint != null) {
                     AgentID occupyingAgent = envGrid.get(unavailablePoint.x).get(unavailablePoint.y);
                     if (occupyingAgent != null) {
                         try {
                             DestinationUnavailableTrigger warningTrigger = new DestinationUnavailableTrigger(
-                                    unavailablePoint, occupyingAgent
+                                    occupyingAgent,
+                                    unavailablePoint
                             );
                             platform.getLocalAgent(agentAction.getAgentID()).addExternalTrigger(warningTrigger);
+                            System.out.println("Message sent");
                         } catch (URISyntaxException e) {
                             e.printStackTrace();
                         }
                     }
                 }
 
-                System.out.println("Move agent :"+agentAction.getAgentID() +"  "+action);
-                //envGrid.forEach(System.out::println);
+                System.out.println("Move agent "+agentAction.getAgentID().toString().substring(2, 4) +"  "+action);
                 printEnv();
             }
 
@@ -157,11 +178,15 @@ public class Environment implements Context, TickHookProcessor<String> {
         for (int i = 0; i < envGrid.size(); i++) {
             for (int j = 0; j < envGrid.get(i).size(); j++) {
                 if (envGrid.get(i).get(j) != null)
-                    System.out.print(envGrid.get(i).get(j).toString().substring(3, 5)+" ");
+                    System.out.print(envGrid.get(i).get(j).toString().substring(2, 4)+" ");
                 else
                     System.out.print("-- ");
             }
             System.out.println();
         }
+    }
+
+    public boolean pointInGrid(Point p){
+        return p.x >= 0 && p.x <= envGrid.size()-1 && p.y >= 0 && p.y <= envGrid.get(0).size()-1;
     }
 }

@@ -17,9 +17,8 @@ import java.util.logging.Level;
  * enter into (adjacent to their position). It also communicates its target location, in
  * case the other agent will reject the offer, and make a counter proposal.
  *
- * TODO for you: When and how is a conflict resolution proposal accepted or rejected, if both agents
- * send a proposal at the same time?
  */
+
 public class ResolveGridConflictMessage implements MessageInterface {
 
     private final Map<String, String> parameters = new HashMap<>();
@@ -28,42 +27,43 @@ public class ResolveGridConflictMessage implements MessageInterface {
 
     public ResolveGridConflictMessage(
             AgentID sender,
-            Point myProposedLocation,
-            Point yourProposedLocation,
-            Point myTarget,
+            Point currentLocation,
+            Point unavailablePoint,
+            Point proposedLocation,
             AgentID... receivers
     ) {
         this.sender = sender;
         this.receivers = Arrays.asList(receivers);
         addUserDefinedParameter("X-messageID", String.valueOf(UUID.randomUUID()));
-        setMyProposedNextCoordinates(myProposedLocation);
-        setYourProposedNextCoordinates(yourProposedLocation);
-        setMyTargetCoordinates(myTarget);
+        setCurrentCoordinates(currentLocation);
+        setUnavailableCoordinates(unavailablePoint);
+        setProposedNextCoordinates(proposedLocation);
     }
 
-    public void setMyProposedNextCoordinates(Point proposedPoint) {
+    public void setCurrentCoordinates(Point proposedPoint) {
         pointToParams(proposedPoint, "myX", "myY");
     }
 
-    public Point getMyProposedNextCoordinates() {
+    public Point getCurrentCoordinates() {
         return paramsToPoint("myX", "myY");
     }
 
-    public void setYourProposedNextCoordinates(Point proposedPoint) {
-        pointToParams(proposedPoint, "yourX", "yourY");
+    public void setUnavailableCoordinates(Point proposedPoint) {
+        pointToParams(proposedPoint, "unavailableX", "unavailableY");
     }
 
-    public Point getYourProposedNextCoordinates() {
-        return paramsToPoint("yourX", "yourY");
+    public Point getUnavailableCoordinates() {
+        return paramsToPoint("unavailableX", "unavailableY");
     }
 
-    public void setMyTargetCoordinates(Point target) {
-        pointToParams(target, "targetX", "targetY");
+    public void setProposedNextCoordinates(Point proposedPoint) {
+        pointToParams(proposedPoint, "myProposedX", "myProposedY");
     }
 
-    public Point getMyTargetCoordinates() {
-        return paramsToPoint("targetX", "targetY");
+    public Point getProposedNextCoordinates() {
+        return paramsToPoint("myProposedX", "myProposedY");
     }
+
 
     private void pointToParams(Point p, String keyX, String keyY) {
         if (p != null) {

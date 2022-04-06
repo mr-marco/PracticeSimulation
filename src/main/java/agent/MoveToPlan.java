@@ -20,7 +20,7 @@ public class MoveToPlan extends RunOncePlan<String> {
     @Override
     public String executeOnce(PlanToAgentInterface<String> planToAgentInterface) throws PlanExecutionError {
         // retrieve current position from the environment
-        Environment env = planToAgentInterface.getContext(Environment.class);   // retrieve environement
+        Environment env = planToAgentInterface.getContext(Environment.class);   // retrieve environment
         Point currentPos = env.getPosition(planToAgentInterface.getContext(Belief.class).getAgentID()); // retrieve position from the environment with the subject agentID
 
         // calculate action
